@@ -21,6 +21,9 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
     public Text uiText;
 
     [SerializeField]
+    private float framerate = 1.0f;
+
+    [SerializeField]
     string VISIONKEY = "YOURVISIONKEY"; // replace with your Computer Vision API Key
     [SerializeField]
     string filePath = "";
@@ -29,6 +32,10 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
     int camWidth_px = 1280;
     int camHeight_px = 720;
     WebCamTexture webcamTexture;
+
+    private float requestFrequency;
+    private float remainTimeNextRequest;
+
 
     string emotionURL = "https://westus.api.cognitive.microsoft.com/emotion/v1.0/recognize";
 
@@ -40,6 +47,8 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
     void Start()
     {
         isWaitForResponse = false;
+        requestFrequency = 1.0f / framerate;
+        remainTimeNextRequest = -1.0f;
 
         // Any place AirTap
         InputManager.Instance.PushFallbackInputHandler(gameObject);
@@ -78,6 +87,12 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
 
     void Update()
     {
+        remainTimeNextRequest -= Time.deltaTime;
+        if( remainTimeNextRequest <= 0.0f)
+        {
+            remainTimeNextRequest = requestFrequency;
+        }
+
 #if UNITY_EDITOR
         if (Input.GetMouseButtonDown(1))
         {
@@ -122,8 +137,7 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
     {
         if (webcamTexture.isPlaying)
         {
-            if (!isWaitForResponse) { SavePhoto(); }
-            else { Debug.Log("Wait for responce"); }
+            SendPhotoIfAvailable();
         }
         else
         {
@@ -131,6 +145,12 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
             Debug.LogError("must not happen");
             webcamTexture.Play();
         }
+    }
+
+    private void SendPhotoIfAvailable()
+    {
+        if (!isWaitForResponse) { SavePhoto(); }
+        else { Debug.Log("Wait for responce"); }
     }
 
     IEnumerator GetVisionDataFromImages()
