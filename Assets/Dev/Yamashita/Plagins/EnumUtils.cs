@@ -31,7 +31,8 @@ namespace AY_Util
         /// <returns>文字列化した要素</returns>
         public static string GetString ( int index )
         {
-            return GetString( index );
+            var elm = GetElement( index );
+            return elm.ToString();
         }
 
         /// <summary>
