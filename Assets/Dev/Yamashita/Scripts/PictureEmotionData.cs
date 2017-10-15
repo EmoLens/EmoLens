@@ -19,7 +19,9 @@ public class PictureEmotionData
     /// <returns>作成されたデータセットのインスタンスです</returns>
     public KeyValuePair<FaceRectangle, EmotionScore> AddSet ( )
     {
-        return new KeyValuePair<FaceRectangle, EmotionScore>( new FaceRectangle(), new EmotionScore() );
+        var data = new KeyValuePair<FaceRectangle, EmotionScore>(new FaceRectangle(), new EmotionScore());
+        mDataSets.Add(data);
+        return data;
     }
 
     public List<KeyValuePair<FaceRectangle, EmotionScore>> Get()

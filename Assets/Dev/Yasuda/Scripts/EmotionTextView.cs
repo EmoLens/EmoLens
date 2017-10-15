@@ -38,6 +38,16 @@ public class EmotionTextView : MonoBehaviour {
     public void updateEmotion(float anger, float contempt, float disgust, float fear,
                               float happiness, float neutral, float sadness, float suprise)
     {
+        anger = Mathf.Clamp(anger, 0.1f, 1.0f) + 0.01f ;
+        contempt = Mathf.Clamp(contempt, 0.1f, 1.0f) + 0.01f;
+        disgust = Mathf.Clamp(disgust, 0.1f, 1.0f) + 0.01f;
+        fear = Mathf.Clamp(fear, 0.1f, 1.0f) + 0.01f;
+        happiness = Mathf.Clamp(happiness, 0.1f, 1.0f) + 0.01f;
+        neutral = Mathf.Clamp(neutral, 0.1f, 1.0f) + 0.01f;
+        sadness = Mathf.Clamp(sadness, 0.1f, 1.0f) + 0.01f;
+        suprise = Mathf.Clamp(suprise, 0.1f, 1.0f) + 0.01f;
+        
+
         angerText.transform.localScale = localScale * anger;
         contemptText.transform.localScale = localScale * contempt;
         disgustText.transform.localScale = localScale * disgust;
