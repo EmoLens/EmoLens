@@ -1,16 +1,14 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿public class EmotionScore
+{
+    public float[] value = new float[( int )VALUE.SIZE];
 
-public class EmothonScore : MonoBehaviour {
+    public enum VALUE
+    {
+        ANGER, CONTEMPT, DISGUST, FEAR, HAPPINESS, NATURAL, SADNESS, SURPRISE, SIZE
+    }
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+    public float Get ( VALUE key )
+    {
+        return value[( int )key];
+    }
 }

@@ -1,11 +1,14 @@
-﻿using UnityEngine;
-
-public class FaceRectangle : MonoBehaviour
+﻿public class FaceRectangle
 {
-    public float[] value = new float[4];
+    public float[] value = new float[( int )VALUE.SIZE];
 
-    private enum VALUE
+    public enum VALUE
     {
-        TOP, LEFT, WIDTH, HEIGHT
+        TOP, LEFT, WIDTH, HEIGHT, SIZE
+    }
+
+    public float Get ( VALUE key )
+    {
+        return value[( int )key];
     }
 }
