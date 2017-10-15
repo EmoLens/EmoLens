@@ -20,13 +20,12 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
     public RawImage ImageCaptured;
     public Text uiText;
 
-    [SerializeField]
+    [SerializeField, Range(0.2f, 30.0f)]
     private float framerate = 1.0f;
-
     [SerializeField]
     string VISIONKEY = "YOURVISIONKEY"; // replace with your Computer Vision API Key
     [SerializeField]
-    string filePath = "";
+    bool autoRequest = false;
 
     private bool isWaitForResponse = false;
     int camWidth_px = 1280;
@@ -35,7 +34,8 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
 
     private float requestFrequency;
     private float remainTimeNextRequest;
-
+    private uint accumCount = 0;
+    string filePath = "";
 
     string emotionURL = "https://westus.api.cognitive.microsoft.com/emotion/v1.0/recognize";
 
@@ -47,8 +47,9 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
     void Start()
     {
         isWaitForResponse = false;
-        requestFrequency = 1.0f / framerate;
         remainTimeNextRequest = -1.0f;
+        _UpdateFrequency();
+        accumCount = 0;
 
         // Any place AirTap
         InputManager.Instance.PushFallbackInputHandler(gameObject);
@@ -87,12 +88,17 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
 
     void Update()
     {
+        _UpdateFrequency(); //FIXME: 値が変わったときだけ更新したいが、害はないでしょう.
+
         remainTimeNextRequest -= Time.deltaTime;
-        if( remainTimeNextRequest <= 0.0f)
+        if( autoRequest && remainTimeNextRequest <= 0.0f)
         {
             remainTimeNextRequest = requestFrequency;
+            SendPhotoIfAvailable();
         }
 
+        uiText.text = MakeStatus();
+            
 #if UNITY_EDITOR
         if (Input.GetMouseButtonDown(1))
         {
@@ -119,6 +125,8 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
         //webcamTexture.Stop();
 
         StartCoroutine(GetVisionDataFromImages());
+
+        accumCount++;
     }
 
     //Sceneを変更する場合にカメラを止める
@@ -131,6 +139,12 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
     {
         Debug.Log("AirTapped");
         _OnClicked();
+    }
+
+    private void _UpdateFrequency()
+    {
+        framerate = Mathf.Clamp(framerate, 0.2f, 30.0f);
+        requestFrequency = 1.0f / framerate;
     }
 
     private void _OnClicked()
@@ -175,11 +189,18 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
             //GetComponent<ParseComputerVisionResponse>().ParseJSONData(responseData);
             response = responseData;
 
-            uiText.text = response;
             onDataReceived.Invoke(response);
 
             isWaitForResponse = false; // XXX: ココからまで. 多重リクエスト禁止.
         }
     }
 
+    private string MakeStatus()
+    {
+        string ret = "";
+        ret += " auto: " + autoRequest;
+        ret += " freq: "  + requestFrequency.ToString("f3");
+        ret += " accum: " + accumCount;
+        return ret;
+    }
 }
