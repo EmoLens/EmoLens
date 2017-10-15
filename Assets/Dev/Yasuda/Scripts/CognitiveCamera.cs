@@ -1,6 +1,7 @@
 ﻿//https://torikasyu.com/?p=921
 
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Assertions;
 using System.Collections;
 using System.IO;
@@ -11,6 +12,8 @@ using System.Collections.Generic;
 public class CognitiveCamera : MonoBehaviour, IInputClickHandler
 {
     public string response = "";
+    public class DataReceiveEvent : UnityEvent<string> { };
+    public DataReceiveEvent onDataReceived { get; private set; }
 
     // for inspector(uGUI Objects)
     public RawImage ImageViewer;
@@ -18,24 +21,41 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
     public Text uiText;
 
     [SerializeField]
+    private float framerate = 1.0f;
+
+    [SerializeField]
     string VISIONKEY = "YOURVISIONKEY"; // replace with your Computer Vision API Key
     [SerializeField]
     string filePath = "";
 
+    private bool isWaitForResponse = false;
     int camWidth_px = 1280;
     int camHeight_px = 720;
     WebCamTexture webcamTexture;
 
+    private float requestFrequency;
+    private float remainTimeNextRequest;
+
+
     string emotionURL = "https://westus.api.cognitive.microsoft.com/emotion/v1.0/recognize";
+
+    void Awake()
+    {
+        onDataReceived = new DataReceiveEvent();
+    }
 
     void Start()
     {
+        isWaitForResponse = false;
+        requestFrequency = 1.0f / framerate;
+        remainTimeNextRequest = -1.0f;
+
         // Any place AirTap
         InputManager.Instance.PushFallbackInputHandler(gameObject);
 
 		WebCamDevice[] devices = WebCamTexture.devices;
 #if UNITY_EDITOR
-        string devicename = devices[1].name;
+        string devicename = devices[0].name;
 #else
         //Hololensの実機がここを通ると想定
         string devicename = devices[0].name;
@@ -67,6 +87,12 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
 
     void Update()
     {
+        remainTimeNextRequest -= Time.deltaTime;
+        if( remainTimeNextRequest <= 0.0f)
+        {
+            remainTimeNextRequest = requestFrequency;
+        }
+
 #if UNITY_EDITOR
         if (Input.GetMouseButtonDown(1))
         {
@@ -88,10 +114,9 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
         //var bytes = snap.EncodeToPNG();
         var bytes = snap.EncodeToJPG();
         File.WriteAllBytes(filePath, bytes);
-        Debug.Log(filePath);
 
         ImageCaptured.texture = snap;
-        webcamTexture.Stop();
+        //webcamTexture.Stop();
 
         StartCoroutine(GetVisionDataFromImages());
     }
@@ -112,34 +137,49 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
     {
         if (webcamTexture.isPlaying)
         {
-            SavePhoto();
+            SendPhotoIfAvailable();
         }
         else
         {
+            // タップ時に、webcamTextureをStopするのをやめたので、このパスには入らない.
+            Debug.LogError("must not happen");
             webcamTexture.Play();
         }
     }
 
+    private void SendPhotoIfAvailable()
+    {
+        if (!isWaitForResponse) { SavePhoto(); }
+        else { Debug.Log("Wait for responce"); }
+    }
+
     IEnumerator GetVisionDataFromImages()
     {
-        byte[] bytes = UnityEngine.Windows.File.ReadAllBytes(filePath);
-        Debug.Log(filePath + ": " + bytes.Length.ToString());
+        if (!isWaitForResponse)
+        {
+            isWaitForResponse = true; // XXX: ココから
 
-        var headers = new Dictionary<string, string>() {
-            { "Ocp-Apim-Subscription-Key", VISIONKEY },
-            { "Content-Type", "application/octet-stream" }
-        };
+            byte[] bytes = UnityEngine.Windows.File.ReadAllBytes(filePath);
 
-        WWW www = new WWW(emotionURL, bytes, headers);
+            var headers = new Dictionary<string, string>() {
+                { "Ocp-Apim-Subscription-Key", VISIONKEY },
+                { "Content-Type", "application/octet-stream" }
+            };
 
-        yield return www;
-        string responseData = www.text; // Save the response as JSON string
+            WWW www = new WWW(emotionURL, bytes, headers);
 
-        Debug.Log(responseData);
-        //GetComponent<ParseComputerVisionResponse>().ParseJSONData(responseData);
-        response = responseData;
+            yield return www;
+            string responseData = www.text; // Save the response as JSON string
 
-        uiText.text = response;
+            //Debug.Log(responseData);
+            //GetComponent<ParseComputerVisionResponse>().ParseJSONData(responseData);
+            response = responseData;
+
+            uiText.text = response;
+            onDataReceived.Invoke(response);
+
+            isWaitForResponse = false; // XXX: ココからまで. 多重リクエスト禁止.
+        }
     }
 
 }
