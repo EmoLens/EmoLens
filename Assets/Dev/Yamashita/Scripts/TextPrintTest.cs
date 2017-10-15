@@ -15,10 +15,8 @@ public class TextPrintTest : MonoBehaviour
         Assert.IsNotNull( textAsset );
         //string jsonText = StringAjast( textAsset.text );
         string jsonText = textAsset.text;
-        Log.DebugThrow( "jsonText is \n" + jsonText );
         Dictionary<string, object> dic = Json.Deserialize( jsonText ) as Dictionary<string, object>;
         Assert.IsNotNull( dic );
-        Log.DebugThrow( "dic.Count is" + dic.Count );
         return dic;
     }
 
@@ -27,7 +25,6 @@ public class TextPrintTest : MonoBehaviour
         mText = GetComponent<Text>();
         Assert.IsNotNull( mText );
         Dictionary<string, object> dic = JsonRead();
-        Log.DebugThrow(JsonParser<string>.Parse(dic, "name"));
 
         //List<object> objList = JsonParser<List<object>>.Parse( dic, "array" );
         //foreach (object obj in objList)
