@@ -1,6 +1,7 @@
 ﻿//https://torikasyu.com/?p=921
 
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Assertions;
 using System.Collections;
 using System.IO;
@@ -11,6 +12,8 @@ using System.Collections.Generic;
 public class CognitiveCamera : MonoBehaviour, IInputClickHandler
 {
     public string response = "";
+    public class DataReceiveEvent : UnityEvent<string> { };
+    public DataReceiveEvent onDataReceived { get; private set; }
 
     // for inspector(uGUI Objects)
     public RawImage ImageViewer;
@@ -28,6 +31,11 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
 
     string emotionURL = "https://westus.api.cognitive.microsoft.com/emotion/v1.0/recognize";
 
+    void Awake()
+    {
+        onDataReceived = new DataReceiveEvent();
+    }
+
     void Start()
     {
         // Any place AirTap
@@ -35,7 +43,7 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
 
 		WebCamDevice[] devices = WebCamTexture.devices;
 #if UNITY_EDITOR
-        string devicename = devices[1].name;
+        string devicename = devices[0].name;
 #else
         //Hololensの実機がここを通ると想定
         string devicename = devices[0].name;
@@ -135,11 +143,12 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
         yield return www;
         string responseData = www.text; // Save the response as JSON string
 
-        Debug.Log(responseData);
+        //Debug.Log(responseData);
         //GetComponent<ParseComputerVisionResponse>().ParseJSONData(responseData);
         response = responseData;
 
         uiText.text = response;
+        onDataReceived.Invoke(response);
     }
 
 }
