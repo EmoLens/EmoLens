@@ -28,16 +28,16 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
     bool autoRequest = false;
 
     private bool isWaitForResponse = false;
-    int camWidth_px = 1280;
-    int camHeight_px = 720;
-    WebCamTexture webcamTexture;
+    private int camWidth_px = 1280;
+    private int camHeight_px = 720;
+    private WebCamTexture webcamTexture;
 
     private float requestFrequency;
     private float remainTimeNextRequest;
     private uint accumCount = 0;
-    string filePath = "";
+    private string filePath = "";
 
-    string emotionURL = "https://westus.api.cognitive.microsoft.com/emotion/v1.0/recognize";
+    private string emotionURL = "https://westus.api.cognitive.microsoft.com/emotion/v1.0/recognize";
 
     void Awake()
     {
