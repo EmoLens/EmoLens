@@ -8,26 +8,32 @@ public class TextPrintTest : MonoBehaviour
 {
     private Text mText;
 
-    private Dictionary<string, object> JsonRead ( )
+    private List<object> JsonRead ( )
     {
         UnityEngine.Object[] objcts = Resources.LoadAll( "" );
         var textAsset = objcts[0] as TextAsset;
         Assert.IsNotNull( textAsset );
-        //string jsonText = StringAjast( textAsset.text );
         string jsonText = textAsset.text;
         Log.DebugThrow( "jsonText is \n" + jsonText );
-        Dictionary<string, object> dic = Json.Deserialize( jsonText ) as Dictionary<string, object>;
-        Assert.IsNotNull( dic );
-        Log.DebugThrow( "dic.Count is" + dic.Count );
-        return dic;
+        List<object> list = Json.Deserialize( jsonText ) as List<object>;
+        return list;
+
+        //Dictionary<string, object> dic = Json.Deserialize( jsonText ) as Dictionary<string, object>;
+        //Assert.IsNotNull( dic );
+        //Log.DebugThrow( "dic.Count is" + dic.Count );
+        //return dic;
     }
 
     private void Start ( )
     {
         mText = GetComponent<Text>();
         Assert.IsNotNull( mText );
-        Dictionary<string, object> dic = JsonRead();
-        Log.DebugThrow(JsonParser<string>.Parse(dic, "name"));
+        List<object> list = JsonRead();
+        foreach(object obj in list)
+        {
+            Log.DebugThrow( JsonParser<string>.Parse( obj, "name" ) );
+
+        }
 
         //List<object> objList = JsonParser<List<object>>.Parse( dic, "array" );
         //foreach (object obj in objList)
