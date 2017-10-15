@@ -25,6 +25,7 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
     [SerializeField]
     string filePath = "";
 
+    private bool isWaitForResponse = false;
     int camWidth_px = 1280;
     int camHeight_px = 720;
     WebCamTexture webcamTexture;
@@ -38,6 +39,8 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
 
     void Start()
     {
+        isWaitForResponse = false;
+
         // Any place AirTap
         InputManager.Instance.PushFallbackInputHandler(gameObject);
 
@@ -96,10 +99,9 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
         //var bytes = snap.EncodeToPNG();
         var bytes = snap.EncodeToJPG();
         File.WriteAllBytes(filePath, bytes);
-        Debug.Log(filePath);
 
         ImageCaptured.texture = snap;
-        webcamTexture.Stop();
+        //webcamTexture.Stop();
 
         StartCoroutine(GetVisionDataFromImages());
     }
@@ -120,35 +122,44 @@ public class CognitiveCamera : MonoBehaviour, IInputClickHandler
     {
         if (webcamTexture.isPlaying)
         {
-            SavePhoto();
+            if (!isWaitForResponse) { SavePhoto(); }
+            else { Debug.Log("Wait for responce"); }
         }
         else
         {
+            // タップ時に、webcamTextureをStopするのをやめたので、このパスには入らない.
+            Debug.LogError("must not happen");
             webcamTexture.Play();
         }
     }
 
     IEnumerator GetVisionDataFromImages()
     {
-        byte[] bytes = UnityEngine.Windows.File.ReadAllBytes(filePath);
-        Debug.Log(filePath + ": " + bytes.Length.ToString());
+        if (!isWaitForResponse)
+        {
+            isWaitForResponse = true; // XXX: ココから
 
-        var headers = new Dictionary<string, string>() {
-            { "Ocp-Apim-Subscription-Key", VISIONKEY },
-            { "Content-Type", "application/octet-stream" }
-        };
+            byte[] bytes = UnityEngine.Windows.File.ReadAllBytes(filePath);
 
-        WWW www = new WWW(emotionURL, bytes, headers);
+            var headers = new Dictionary<string, string>() {
+                { "Ocp-Apim-Subscription-Key", VISIONKEY },
+                { "Content-Type", "application/octet-stream" }
+            };
 
-        yield return www;
-        string responseData = www.text; // Save the response as JSON string
+            WWW www = new WWW(emotionURL, bytes, headers);
 
-        //Debug.Log(responseData);
-        //GetComponent<ParseComputerVisionResponse>().ParseJSONData(responseData);
-        response = responseData;
+            yield return www;
+            string responseData = www.text; // Save the response as JSON string
 
-        uiText.text = response;
-        onDataReceived.Invoke(response);
+            //Debug.Log(responseData);
+            //GetComponent<ParseComputerVisionResponse>().ParseJSONData(responseData);
+            response = responseData;
+
+            uiText.text = response;
+            onDataReceived.Invoke(response);
+
+            isWaitForResponse = false; // XXX: ココからまで. 多重リクエスト禁止.
+        }
     }
 
 }
