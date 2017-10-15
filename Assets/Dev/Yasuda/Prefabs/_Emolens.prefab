@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 222020810550336582}
   - component: {fileID: 114037105150967860}
   m_Layer: 5
-  m_Name: Text
+  m_Name: Status
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -125,8 +125,9 @@ MonoBehaviour:
   ImageViewer: {fileID: 114700265197650778}
   ImageCaptured: {fileID: 114764902099688714}
   uiText: {fileID: 114037105150967860}
+  framerate: 0.3
   VISIONKEY: 
-  filePath: 
+  autoRequest: 1
 --- !u!114 &114037105150967860
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -139,7 +140,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_Color: {r: 1, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -159,7 +160,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: New Text
+  m_Text: Status
 --- !u!114 &114065589961557100
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -341,8 +342,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 204}
-  m_SizeDelta: {x: 160, y: 30}
+  m_AnchoredPosition: {x: -38.9, y: 29.3}
+  m_SizeDelta: {x: 254.87, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224731026565949480
 RectTransform:
